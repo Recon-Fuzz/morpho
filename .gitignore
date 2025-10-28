@@ -23,3 +23,10 @@ docs/
 /types
 /cache_hardhat
 /artifacts
+
+# Coverage files
+crytic-export
+echidna
+medusa
+
+lib

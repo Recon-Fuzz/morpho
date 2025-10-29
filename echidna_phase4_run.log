@@ -1,0 +1,6 @@
+[2025-10-29 16:20:01.31] Compiling .... WARNING: Slither was explicitly disabled. Echidna uses Slither (https://github.com/crytic/slither) to perform source analysis, which makes fuzzing more effective. You should enable it.
+Done! (238.157725s)
+Analyzing contract: /Users/nelsonpereira/Documents/GitHub/Auditing/Fuzzing/Recon_Fuzzing/Morpho/morpho-blue/test/recon/CryticTester.sol:CryticTester
+echidna: Error toCode: unlinked libraries detected in bytecode, in /Users/nelsonpereira/Documents/GitHub/Auditing/Fuzzing/Recon_Fuzzing/Morpho/morpho-blue/test/forge/integration/AuthorizationIntegrationTest.sol:AuthorizationIntegrationTest
+CallStack (from HasCallStack):
+  error, called at src/EVM/Solidity.hs:667:18 in hevm-0.54.2-BtE1RQ0UGY04cKBAIBlYgU:EVM.Solidity

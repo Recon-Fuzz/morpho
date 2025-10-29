@@ -14,14 +14,66 @@ import {Utils} from "@recon/Utils.sol";
 
 // Your deps
 import "src/Morpho.sol";
+import {ERC20Mock} from "src/mocks/ERC20Mock.sol";
+import {OracleMock} from "src/mocks/OracleMock.sol";
+import {IrmMock} from "src/mocks/IrmMock.sol";
+import {MarketParams, Id} from "src/interfaces/IMorpho.sol";
+import {MarketParamsLib} from "src/libraries/MarketParamsLib.sol";
+import "src/libraries/ConstantsLib.sol";
 
 abstract contract Setup is BaseSetup, ActorManager, AssetManager, Utils {
+    using MarketParamsLib for MarketParams;
+
     Morpho morpho;
-    
+    ERC20Mock loanToken;
+    ERC20Mock collateralToken;
+    OracleMock oracle;
+    IrmMock irm;
+
+    address owner;
+    address feeRecipient;
+
+    MarketParams marketParams;
+    Id marketId;
+
+    uint256 constant DEFAULT_LLTV = 0.8 ether;
+
     /// === Setup === ///
     /// This contains all calls to be performed in the tester constructor, both for Echidna and Foundry
     function setup() internal virtual override {
-        morpho = new Morpho(); // TODO: Add parameters here
+        owner = address(this);
+        feeRecipient = address(0x1234);
+
+        // Deploy Morpho
+        morpho = new Morpho(owner);
+
+        // Deploy mocks
+        loanToken = new ERC20Mock();
+        collateralToken = new ERC20Mock();
+        oracle = new OracleMock();
+        irm = new IrmMock();
+
+        // Configure oracle
+        oracle.setPrice(ORACLE_PRICE_SCALE);
+
+        // Enable IRM and LLTV
+        morpho.enableIrm(address(0));
+        morpho.enableIrm(address(irm));
+        morpho.enableLltv(0);
+        morpho.enableLltv(DEFAULT_LLTV);
+        morpho.setFeeRecipient(feeRecipient);
+
+        // Create market
+        marketParams = MarketParams({
+            loanToken: address(loanToken),
+            collateralToken: address(collateralToken),
+            oracle: address(oracle),
+            irm: address(irm),
+            lltv: DEFAULT_LLTV
+        });
+
+        marketId = marketParams.id();
+        morpho.createMarket(marketParams);
     }
 
     /// === MODIFIERS === ///

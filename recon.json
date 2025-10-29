@@ -50,7 +50,7 @@
       {
         "signature": "setAuthorizationWithSig(tuple,tuple)",
         "actor": "actor",
-        "mode": "normal"
+        "mode": "catch"
       },
       {
         "signature": "setFee(tuple,uint256)",

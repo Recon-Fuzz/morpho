@@ -67,11 +67,9 @@ abstract contract MorphoTargets is
         address actor = _getActor();
         (uint256 supplyShares, , ) = morpho.position(defaultMarketId, actor);
 
-        // Only withdraw if we have supply
-        if (supplyShares == 0) return;
-
         // Clamp to available supply (use shares-based withdrawal to avoid rounding issues)
-        shares = (shares % supplyShares) + 1;
+        // If no supply, this will revert naturally in the underlying call
+        shares = supplyShares > 0 ? (shares % supplyShares) + 1 : shares;
         assets = 0;
 
         onBehalf = actor;
@@ -106,17 +104,16 @@ abstract contract MorphoTargets is
         // Get current collateral position
         (, uint256 borrowShares, uint256 collateral) = morpho.position(defaultMarketId, actor);
 
-        // Only withdraw if we have collateral
-        if (collateral == 0) return;
-
+        // Clamp based on collateral and borrow status
         // If we have borrows, only withdraw a small portion to maintain health
-        if (borrowShares > 0) {
+        if (borrowShares > 0 && collateral > 0) {
             // Withdraw at most 10% of collateral to maintain health
             assets = (assets % (collateral / 10 + 1)) + 1;
-        } else {
+        } else if (collateral > 0) {
             // No borrows, can withdraw up to full collateral
             assets = (assets % collateral) + 1;
         }
+        // If no collateral, will revert naturally
 
         onBehalf = actor;
         receiver = actor;
@@ -152,13 +149,16 @@ abstract contract MorphoTargets is
         if (borrowShares > 0) {
             (,, uint128 totalBorrowAssets, uint128 totalBorrowShares,,) = morpho.market(defaultMarketId);
             uint256 currentBorrow = uint256(borrowShares) * uint256(totalBorrowAssets) / uint256(totalBorrowShares);
-            if (currentBorrow >= maxSafeBorrow) return; // Already at max
-            maxSafeBorrow -= currentBorrow;
+            if (currentBorrow < maxSafeBorrow) {
+                maxSafeBorrow -= currentBorrow;
+            } else {
+                maxSafeBorrow = 1; // Will revert naturally but avoids early return
+            }
         }
 
         // Clamp borrow to safe amount (use 50% of max for safety margin)
         uint256 safeBorrow = maxSafeBorrow / 2;
-        if (safeBorrow == 0) return;
+        safeBorrow = safeBorrow > 0 ? safeBorrow : 1; // Minimum 1 to avoid division by zero
 
         // Use assets-based borrow
         assets = (assets % safeBorrow) + 1;
@@ -180,11 +180,9 @@ abstract contract MorphoTargets is
         // Get current borrow position
         (, uint256 borrowShares, ) = morpho.position(defaultMarketId, actor);
 
-        // Only repay if we have debt
-        if (borrowShares == 0) return;
-
         // Repay using shares to avoid rounding issues
-        shares = (shares % borrowShares) + 1;
+        // If no debt, will revert naturally
+        shares = borrowShares > 0 ? (shares % borrowShares) + 1 : shares;
         assets = 0;
 
         onBehalf = actor;
@@ -205,14 +203,9 @@ abstract contract MorphoTargets is
         // Check if borrower has an unhealthy position
         (, uint256 borrowShares, uint256 collateral) = morpho.position(defaultMarketId, borrower);
 
-        // Skip if no borrow or no collateral
-        if (borrowShares == 0 || collateral == 0) return;
-
-        // For liquidation to work, position must be unhealthy
-        // We can't easily make it unhealthy, so just try small liquidation amounts
-
         // Clamp to small portion of collateral
-        seizedAssets = (seizedAssets % (collateral / 10 + 1)) + 1;
+        // If no borrow or no collateral, will revert naturally
+        seizedAssets = collateral > 0 ? (seizedAssets % (collateral / 10 + 1)) + 1 : seizedAssets;
         repaidShares = 0;
 
         morpho_liquidate(marketParams, borrower, seizedAssets, repaidShares, data);
@@ -228,11 +221,9 @@ abstract contract MorphoTargets is
         // Check available balance in morpho
         uint256 available = loanToken.balanceOf(address(morpho));
 
-        // Only flashloan if there's liquidity
-        if (available == 0) return;
-
         // Clamp to available amount
-        assets = (assets % available) + 1;
+        // If no liquidity, will revert naturally
+        assets = available > 0 ? (assets % available) + 1 : assets;
 
         morpho_flashLoan(token, assets, data);
     }
@@ -273,7 +264,7 @@ abstract contract MorphoTargets is
 
         // Calculate safe borrow (50% of collateral value with lltv)
         uint256 maxBorrow = (collateralAmt * 8 / 10) / 2;
-        if (maxBorrow == 0) return;
+        maxBorrow = maxBorrow > 0 ? maxBorrow : 1; // Minimum 1 to avoid division by zero
 
         borrowAmt = (borrowAmt % maxBorrow) + 1;
 

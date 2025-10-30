@@ -1,0 +1,39 @@
+# Morpho Blue Invariant Testing Scaffold Requirements
+# This file defines the contracts that need scaffolding for invariant testing
+
+## MOCKS TO SCAFFOLD
+# These are dependency contracts that need mock implementations for isolated testing
+MorphoLiquidateCallbackMock
+MorphoRepayCallbackMock
+MorphoSupplyCallbackMock
+MorphoSupplyCollateralCallbackMock
+
+## TARGET FUNCTIONS TO SCAFFOLD
+# These are the core contracts that require target function handlers for invariant testing
+Morpho
+
+## NOTES
+# Existing mocks that are already available and do NOT need scaffolding:
+# - ERC20Mock (src/mocks/ERC20Mock.sol)
+# - IrmMock (src/mocks/IrmMock.sol)
+# - OracleMock (src/mocks/OracleMock.sol)
+# - FlashBorrowerMock (src/mocks/FlashBorrowerMock.sol)
+#
+# The Morpho contract is the main protocol contract located at src/Morpho.sol
+# It requires comprehensive target function coverage for:
+# - Supply/Withdraw operations
+# - Borrow/Repay operations
+# - Collateral management
+# - Liquidations
+# - Flash loans
+# - Authorization management
+# - Market creation and configuration
+# - Interest accrual
+#
+# The callback mocks are required to test the callback functionality in:
+# - liquidate() - requires IMorphoLiquidateCallback
+# - repay() - requires IMorphoRepayCallback
+# - supply() - requires IMorphoSupplyCallback
+# - supplyCollateral() - requires IMorphoSupplyCollateralCallback
+#
+# Note: FlashBorrowerMock already exists and implements IMorphoFlashLoanCallback

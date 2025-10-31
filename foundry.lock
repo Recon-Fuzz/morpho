@@ -5,10 +5,19 @@
       "rev": "dc4fe11d779c048d999032b12ef7c751bae2b3f4"
     }
   },
+  "lib/chimera": {
+    "tag": {
+      "name": "0.1.3",
+      "rev": "d5cf52bc5bbf75f988f8aada23fd12d0bcf7798a"
+    }
+  },
   "lib/forge-std": {
     "rev": "2f112697506eab12d433a65fdc31a639548fe365"
   },
   "lib/halmos-cheatcodes": {
     "rev": "a02072cd5eb8560d00c3f4a73b27831ec6e3137e"
+  },
+  "lib/setup-helpers": {
+    "rev": "0f7abac8f096768817cc7a1d2dcdb01ee8fb278e"
   }
 }

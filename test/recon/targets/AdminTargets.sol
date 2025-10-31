@@ -10,12 +10,52 @@ import {vm} from "@chimera/Hevm.sol";
 // Helpers
 import {Panic} from "@recon/Panic.sol";
 
+import {MarketParams} from "src/interfaces/IMorpho.sol";
+
 abstract contract AdminTargets is
     BaseTargetFunctions,
     Properties
 {
     /// CUSTOM TARGET FUNCTIONS - Add your own target functions here ///
 
+    // Clamped handler for setFee
+    function morpho_setFee_clamped(uint256 newFee) public asAdmin {
+        // Clamp newFee to MAX_FEE (0.25e18), +1 to allow maximum fee
+        newFee = newFee % (0.25 ether + 1);
+
+        // Call unclamped handler with clamped values
+        morpho_setFee(marketParams, newFee);
+    }
+
+    // Clamped handler for enableLltv
+    function morpho_enableLltv_clamped(uint256 lltv) public asAdmin {
+        // Clamp lltv to less than WAD (1e18)
+        lltv = lltv % 1 ether;
+
+        // Call unclamped handler with clamped values
+        morpho_enableLltv(lltv);
+    }
+
 
     /// AUTO GENERATED TARGET FUNCTIONS - WARNING: DO NOT DELETE OR MODIFY THIS LINE ///
+
+    function morpho_enableIrm(address irm) public asAdmin {
+        morpho.enableIrm(irm);
+    }
+
+    function morpho_enableLltv(uint256 lltv) public asAdmin {
+        morpho.enableLltv(lltv);
+    }
+
+    function morpho_setFee(MarketParams memory marketParams, uint256 newFee) public asAdmin {
+        morpho.setFee(marketParams, newFee);
+    }
+
+    function morpho_setFeeRecipient(address newFeeRecipient) public asAdmin {
+        morpho.setFeeRecipient(newFeeRecipient);
+    }
+
+    function morpho_setOwner(address newOwner) public asAdmin {
+        morpho.setOwner(newOwner);
+    }
 }

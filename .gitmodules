@@ -7,3 +7,4 @@
 [submodule ".claude"]
 	path = .claude
 	url = https://github.com/Recon-Fuzz/ai-agent-primers
+	branch = feat/improved-coverage-flows
